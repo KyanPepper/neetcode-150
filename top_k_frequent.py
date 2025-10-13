@@ -9,15 +9,16 @@ class Solution:
                 freqhash[num] = 1
             else:
                 freqhash[num]+=1 
-
-
-        sorted_items = sorted(freqhash.items(), key=lambda x: x[1], reverse=True)
-
         ret = []
-
+        sorted_list = []
+        for i in freqhash.items():
+            sorted_list.append((i[1],i[0]))
+        sorted_list.sort(reverse=True)
         for i in range(k):
-            ret.append(sorted_items[i])
-
+            ret.append(sorted_list[i][1])
         return ret
+        
 
+            
+    
         
