@@ -2,22 +2,23 @@ from typing import List
 
 
 class Solution:
-    def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
-        combos = set()
-        nums = set()
-        for i in candidates:
-            nums.add(i)
+    def combinationSum(self, nums: List[int], target: int) -> List[List[int]]:
+        res = []
 
-        for i in nums:
-            copy = target
-            cur = []
-            diff = target - i
-            cur.append(i)
-            while copy > 0:
-                
+        def dfs(i, cur, total):
+            if total == target:
+                res.append(cur.copy())
+                return
+            if i >= len(nums) or total > target:
+                return
 
-                
-        
+            cur.append(nums[i])
+            dfs(i, cur, total + nums[i])
+            cur.pop()
+            dfs(i + 1, cur, total)
+
+        dfs(0, [], 0)
+        return res
         
         
 
