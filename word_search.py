@@ -6,7 +6,7 @@ class Solution:
         row_len = len(board)
         col_len = len(board[0])
 
-        def dfs(r,c,i,visited) -> True:
+        def dfs(r,c,i,visited) -> bool:  # CHANGED: return type hint
             nonlocal row_len
             nonlocal col_len
              #true condition
@@ -31,7 +31,10 @@ class Solution:
                 #down
                 down = dfs(r,c-1,i+1,visited)
                 #atleast 1 true
-                return right or left or up or down
+                res = right or left or up or down
+                if not res:
+                    del visited[visit_key]  # CHANGED: backtrack
+                return res
             else:
                 return False
 
