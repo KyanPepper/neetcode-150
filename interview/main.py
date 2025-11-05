@@ -1,88 +1,60 @@
+class TreeNode:
+    def __init__(self, val:int):
+        self.val = val
+        self.left=None
+        self.right=None
 
 
+class TreeIter:
+    # preorder traversal root,left,right
+    # stack holds node,state
+    # state=0 current, state=1 left done, state=2 both done
+    #todo use enums or string for readability
+    def __init__(self, root):
+        self.root=root
+        self.stack=[]
 
-#Rate limiter limit amount of calls.
+    def next(self):
+        if not self.stack:
+            if self.root is None:
+                return None
+            self.stack.append((self.root,0))
+            return self.root.val
 
-class RateLimter:
-    def __init__(self, x:int):
-        self.data = {}
-        self.limit = x
-
-        
-
-    def put(self, t:int,) -> bool:
-        keys = self.data.keys()
-        delkeys = []
-        for key in keys:
-                if key < t:
-                    delkeys.append(key)
-        
-        for key in delkeys:
-             self.data.pop(key)
-             
-        if t not in self.data:
-            self.data[t] = 1
-        elif self.data[t] +1 > self.limit:
-            return False
-        else:
-            self.data[t] = self.data[t] + 1
-        
-        return True
-
-
-def testRateLimit_callsDoesNotExceedLimit_returns_true():
-        r = RateLimter(3)  
-
-
-        assert r.put(1) == True
-        assert r.put(1) == True
-        assert r.put(1) == True
-
-        
-
-
-
-
-def testRateLimit_callsDoesNotExceedLimit_returns_false():
-        #arrange
-        r = RateLimter(3)  
-
-        #act and assert 
-        assert r.put(1) == True
-        assert r.put(1) == True
-        assert r.put(1) == True
-        assert r.put(1) == False
-
-
-def testRateLimit_oldValuesRemoved_dictionaryRemovesKey():
-         #arrange
-        r = RateLimter(3)  
-
-        #act 
-        r.put(1)
-        r.put(2)
-
-        #assert 
-        assert 1 not in r.data
-
-
-     
-     
-
-
-
-testRateLimit_callsDoesNotExceedLimit_returns_false()
-testRateLimit_callsDoesNotExceedLimit_returns_true()
-testRateLimit_oldValuesRemoved_dictionaryRemovesKey()
-
-
-
-        
+        while self.stack:
+            node,state=self.stack[-1]
+            if state==0:
+                self.stack[-1]=(node,1)
+                if node.left:
+                    self.stack.append((node.left,0))
+                    return node.left.val
+            elif state==1:
+                self.stack[-1]=(node,2)
+                if node.right:
+                    self.stack.append((node.right,0))
+                    return node.right.val
+            else:
+                self.stack.pop()
+        return None
 
 
 
 
+def test_next_return_213():
+    root=TreeNode(2)
+    left=TreeNode(1)
+    right=TreeNode(3)
+    left.right=TreeNode(10)
+    root.left=left
+    root.right=right
+
+    ti=TreeIter(root)
+    print("NEXT:")
+    print(ti.next())
+    print(ti.next())
+    print(ti.next())
+    print(ti.next())
+    print(ti.next())
 
 
-
-
+test_next_return_213()

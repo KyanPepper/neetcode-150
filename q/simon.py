@@ -1,98 +1,138 @@
+
+
 def solution(A):
+   
     n = len(A)
     
-    # Edge cases
+    # Edge case: need at least 2 elements to place a tile
     if n < 2:
         return 0
     
-    # Calculate sum for each possible tile position (pair of adjacent elements)
+
     pairs = []
     for i in range(n - 1):
-        pairs.append((A[i] + A[i + 1], i))
+        pairs.append(A[i] + A[i + 1])
     
-    # If we can only place 1 or 2 tiles
-    if n < 4:
-        return max(pairs)[0]
-    
-    # For general case: use DP to find best combination of up to 3 non-overlapping tiles
-    # dp[i][k] = maximum sum using at most k tiles from first i pairs
     num_pairs = len(pairs)
     
-    # We need at most 3 tiles
+
+    if num_pairs == 1:
+        return max(0, pairs[0])  # Return 0 if sum is negative
+    
+
     max_tiles = min(3, num_pairs)
     
-    # dp[i][k] represents max sum using at most k tiles considering pairs 0..i-1
-    dp = [[0] * (max_tiles + 1) for _ in range(num_pairs + 1)]
+
+    NEG_INF = float('-inf')
+    dp = [[NEG_INF] * (max_tiles + 1) for _ in range(num_pairs + 1)]
     
+
+    for i in range(num_pairs + 1):
+        dp[i][0] = 0
+    
+    # Fill DP table
     for i in range(1, num_pairs + 1):
-        pair_sum, pair_start = pairs[i - 1]
+        pair_sum = pairs[i - 1]  # Sum of current pair
         
         for k in range(1, max_tiles + 1):
-            # Option 1: Don't use this pair
+            # Option 1: Don't use this pair (carry forward previous best)
             dp[i][k] = dp[i - 1][k]
             
             # Option 2: Use this pair
-            # We need to find the last pair that doesn't overlap with current pair
-            # Current pair covers positions [pair_start, pair_start + 1]
-            # Previous pair must end before pair_start
-            # Previous pair at index j covers positions [j, j+1]
-            # So we need j + 1 < pair_start, which means j < pair_start
-            # Which means pair index j <= pair_start - 1
-            
-            if i >= 2 and pair_start >= 1:
-                # Can potentially use a previous non-overlapping pair
-                dp[i][k] = max(dp[i][k], dp[pair_start][k - 1] + pair_sum)
-            elif k == 1:
-                # First tile
-                dp[i][k] = max(dp[i][k], pair_sum)
+            # If we use pair at index i-1, we cannot use pair at index i-2
+            # because they would overlap (pair i-2 covers A[i-2] and A[i-1],
+            # and pair i-1 covers A[i-1] and A[i])
+            # So we look at dp[i-2][k-1] to get the best sum using k-1 tiles
+            # before the previous pair
+            if i >= 2:
+                dp[i][k] = max(dp[i][k], dp[i - 2][k - 1] + pair_sum)
+            else:
+                # First pair, no overlap concerns
+                if k == 1:
+                    dp[i][k] = max(dp[i][k], pair_sum)
     
-    return dp[num_pairs][max_tiles]
+    # Return the maximum sum achievable using at most max_tiles tiles
+    # We check all possibilities from 0 to max_tiles to handle negative sums
+    result = 0
+    for k in range(max_tiles + 1):
+        result = max(result, dp[num_pairs][k])
+    
+    return result
 
 
 # Test cases
 def test_solution():
-    # Test case 1: Example with clear optimal solution
-    A1 = [4, 42, 2, 3, 8]
-    print(f"Test 1: A = {A1}")
-    print(f"Result: {solution(A1)}")
-    print(f"Expected: 50 (tiles at [1-2]: 42+2=44, [3-4]: 3+8=11, total=55) or")
-    print(f"         54 (tiles at [0-1]: 4+42=46, [3-4]: 3+8=11, total=57) or")
-    print(f"         46 (tile at [0-1]: 4+42=46)")
-    print()
+    """Run comprehensive test cases"""
     
-    # Test case 2: Small array
-    A2 = [1, 2]
-    print(f"Test 2: A = {A2}")
-    print(f"Result: {solution(A2)}")
-    print(f"Expected: 3 (one tile covering both elements)")
-    print()
+    tests = [
+        {
+            'input': [4, 42, 2, 3, 8],
+            'expected': 57,
+            'description': 'Standard case with multiple tiles'
+        },
+        {
+            'input': [1, 2],
+            'expected': 3,
+            'description': 'Minimum size array'
+        },
+        {
+            'input': [-5, -2, -8, -1],
+            'expected': 0,
+            'description': 'All negative numbers - use no tiles'
+        },
+        {
+            'input': [5, 3, 2, 9, 1, 7, 6, 4],
+            'expected': 32,
+            'description': 'Longer array requiring optimal selection'
+        },
+        {
+            'input': [100],
+            'expected': 0,
+            'description': 'Single element - cannot place tile'
+        },
+        {
+            'input': [10, 20, 30],
+            'expected': 50,
+            'description': 'Three elements - one tile optimal'
+        },
+        {
+            'input': [5, -3, 10, 2, -1, 8],
+            'expected': 21,
+            'description': 'Mix of positive and negative'
+        },
+        {
+            'input': [1, 1, 1, 1, 1, 1],
+            'expected': 6,
+            'description': 'All elements equal - use 3 tiles'
+        },
+            {'input': [1,5,3,2,6,6,10,4,7,2,1],
+             'expected': 35,
+             'description': 'All elements equal'
+            }
+   
+
+
+    ]
     
-    # Test case 3: All negative numbers
-    A3 = [-5, -2, -8, -1]
-    print(f"Test 3: A = {A3}")
-    print(f"Result: {solution(A3)}")
-    print(f"Expected: -3 (tile at [2-3]: -8+(-1)=-9 is worst, [1-2]: -2+(-8)=-10, best is [0-1]: -5+(-2)=-7)")
-    print()
+    all_passed = True
+    for i, test in enumerate(tests, 1):
+        result = solution(test['input'])
+        passed = result == test['expected']
+        all_passed = all_passed and passed
+        
+        status = "✓ PASS" if passed else "✗ FAIL"
+        print(f"Test {i}: {status}")
+        print(f"  Description: {test['description']}")
+        print(f"  Input: {test['input']}")
+        print(f"  Expected: {test['expected']}, Got: {result}")
+        print()
     
-    # Test case 4: Longer array
-    A4 = [5, 3, 2, 9, 1, 7, 6, 4]
-    print(f"Test 4: A = {A4}")
-    print(f"Result: {solution(A4)}")
-    print()
+    if all_passed:
+        print("All tests passed! ✓")
+    else:
+        print("Some tests failed. ✗")
     
-    # Test case 5: Only one element
-    A5 = [100]
-    print(f"Test 5: A = {A5}")
-    print(f"Result: {solution(A5)}")
-    print(f"Expected: 0 (cannot place any tile)")
-    print()
-    
-    # Test case 6: Three elements
-    A6 = [10, 20, 30]
-    print(f"Test 6: A = {A6}")
-    print(f"Result: {solution(A6)}")
-    print(f"Expected: 50 (tile at [1-2]: 20+30=50)")
-    print()
+    return all_passed
 
 if __name__ == "__main__":
     test_solution()
